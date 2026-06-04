@@ -1,92 +1,92 @@
 # yuque-power-user
 
-[Claude Code Skill](https://docs.anthropic.com/en/docs/claude-code) for Yuque (语雀) document automation. Teaches your AI agent how to correctly use Yuque's MCP API, CLI, and extended Markdown (YMD) syntax — including the pitfalls that cost you hours to discover on your own.
+[Claude Code Skill](https://docs.anthropic.com/en/docs/claude-code)，教你的 AI agent 正确使用语雀 MCP API、CLI 和扩展 Markdown（YMD）语法——包括那些你得踩几小时坑才能发现的陷阱。
 
-## What this Skill does
+## 这个 Skill 做什么
 
-When you or your agent says something like:
+当你或你的 agent 说类似这样的话：
 
-- "帮我在语雀上建个文档"
-- "给文档加个流程图和思维导图"
-- "表格加个合并单元格、背景色，列宽能拉宽么"
-- "本地截图要插到语雀文档里"
-- "写个周报模板，要高亮块、折叠块、红色指标、日历卡片"
+- "我写了个方案，帮我发到语雀上，放在 xxx 知识库里"
+- "帮我在文档里加个流程图和思维导图"
+- "表格要好看一点，表头加底色，有几个单元格要合并，表格太窄了能拉宽么"
+- "我本地有几张截图要插到语雀文档里"
+- "帮我写个周报模板，要有高亮块、折叠块、关键指标标红、加个日历卡片"
 
-The skill automatically loads the right reference and **prevents common mistakes** before they happen.
+Skill 会自动加载对应的参考文档，并**在错误发生之前拦截常见问题**。
 
-## 6 Guardrails (the hard-won lessons)
+## 6 条护栏（血泪教训）
 
-1. **Read before write** — `skylark_doc_update` is a **full-text replacement**, not a patch. Always `doc_detail` first.
-2. **4-space indent** — Board DSL for mindmap/architecturediagram silently fails with 2-space indent. No error message.
-3. **Board ≠ Doc** — `skylark_resource_detail` only works on board resources embedded in Doc-type documents, not standalone Board documents.
-4. **No API column width** — Table column width cannot be set via API or YMD. Only Playwright drag works.
-5. **Create ≠ Replace** — Multiple `resource_create` calls append boards, they don't overwrite.
-6. **Toxic tags** — `<cardlink>`, `<mention>`, `<todo>` written via MCP API will corrupt all subsequent paragraphs. Use `[title](url)`, `- [ ]`, and `[@name](profile-url)` instead.
+1. **读后写** — `skylark_doc_update` 是**全文替换**，不是增量更新。更新前必须先 `doc_detail` 读取完整内容。
+2. **4 空格缩进** — 画板 DSL 中 mindmap/architecturediagram 用 2 空格会静默失败，没有任何报错。
+3. **Board ≠ Doc** — `skylark_resource_detail` 只能读取 Doc 类型文档中嵌入的 board resource，不支持独立的 Board 类型文档。
+4. **列宽不可控** — 表格列宽无法通过 API 或 YMD 设置，只有 Playwright 拖动可行。
+5. **创建 ≠ 覆盖** — 多次调用 `resource_create` 会追加画板，不会覆盖已有的。
+6. **有毒标签** — `<cardlink>`、`<mention>`、`<todo>` 通过 MCP API 写入会破坏后续所有段落。用 `[标题](url)`、`- [ ]`、`[@人名](profile-url)` 替代。
 
-## What's inside
+## 目录结构
 
 ```
 yuque-power-user/
-├── SKILL.md                              # Entry point: guardrails + decision router
+├── SKILL.md                              # 入口：护栏 + 决策路由
 └── references/
-    ├── mcp-api-guide.md        (258 lines)  # skylark_* API usage + traps
-    ├── ymd-syntax.md           (334 lines)  # Extended Markdown: callouts, columns, details, calendar, page refs...
-    ├── cli-guide.md            (193 lines)  # yuque CLI for image upload
-    ├── board-dsl.md            (183 lines)  # Flowchart / mindmap / architecture diagram DSL
-    ├── html-table-advanced.md  (106 lines)  # colspan, rowspan, backgroundColor
-    └── playwright-workarounds.md (118 lines) # Column width drag, image upload fallback
+    ├── mcp-api-guide.md        (258 行)  # skylark_* API 用法 + 陷阱
+    ├── ymd-syntax.md           (334 行)  # 扩展 Markdown：高亮块、多栏、折叠、日历、页面引用...
+    ├── cli-guide.md            (193 行)  # 语雀 CLI 图片上传
+    ├── board-dsl.md            (183 行)  # 流程图 / 思维导图 / 架构图 DSL
+    ├── html-table-advanced.md  (106 行)  # colspan、rowspan、backgroundColor
+    └── playwright-workarounds.md (118 行) # 列宽拖动、图片上传备选
 ```
 
-References are **lazy-loaded** — the agent only reads the file relevant to the current task, keeping context lean.
+Reference 文件**按需加载** — agent 只读取当前任务相关的文件，保持上下文精简。
 
-## Install
+## 安装
 
-### Option A: From `.skill` package
+### 方式 A：从 `.skill` 包安装
 
 ```bash
-# Download the .skill file from Releases, then:
+# 从 Releases 下载 .skill 文件，然后：
 cd ~/.claude/skills
 unzip /path/to/yuque-power-user.skill
 ```
 
-### Option B: From source
+### 方式 B：从源码安装
 
 ```bash
-git clone https://github.com/<your-username>/yuque-power-user.git
+git clone https://github.com/serendipity-88/yuque-power-user.git
 cp -r yuque-power-user ~/.claude/skills/
 ```
 
-### Verify
+### 验证
 
-Start a new Claude Code conversation and say "帮我创建一个语雀文档". The skill should auto-trigger.
+新开一个 Claude Code 对话，输入"帮我创建一个语雀文档"。Skill 应自动触发。
 
-## Prerequisites
+## 前置条件
 
-**This skill is a pure knowledge package — it does not install any runtime dependencies.**
+**本 Skill 是纯知识包 — 不会安装任何运行时依赖。**
 
-You need at least one of:
+你至少需要以下其中一项：
 
-| Dependency | What for | How to get |
+| 依赖 | 用途 | 获取方式 |
 |---|---|---|
-| Yuque MCP Server (`skylark_*` tools) | Document CRUD, board creation, search | Auto-connected in Ant Group intranet environment |
-| Yuque CLI (`yuque` command) | Image upload (MCP can't do this) | `npm i -g @antcli/yuque-ant-cli` (Node.js ≥ 20) |
+| 语雀 MCP Server（`skylark_*` 工具） | 文档 CRUD、画板创建、搜索 | 蚂蚁内网环境自动连接 |
+| 语雀 CLI（`yuque` 命令） | 图片上传（MCP 不支持此功能） | `npm i -g @antcli/yuque-ant-cli`（Node.js ≥ 20） |
 
-## Capability coverage
+## 能力覆盖
 
-| Category | Capabilities |
+| 分类 | 能力 |
 |---|---|
-| MCP API | Create/update/search docs, board resources, book TOC |
-| YMD Syntax | Callouts, columns, details/fold, label cards, calendar cards, page references, gradient text, sup/sub, task lists, @mention workaround |
-| Board DSL | Flowchart, mindmap (4-space!), architecture diagram (4-space!) |
-| HTML Tables | colspan, rowspan, backgroundColor, rich text in cells |
-| CLI | Image upload via `--upload-images` |
-| Playwright | Table column width drag, image upload fallback |
+| MCP API | 创建/更新/搜索文档、画板资源、知识库目录 |
+| YMD 语法 | 高亮块、多栏、折叠、标签卡片、日历卡片、页面引用、渐变文字、上下标、任务列表、@人名替代方案 |
+| 画板 DSL | 流程图、思维导图（4空格！）、架构图（4空格！） |
+| HTML 表格 | colspan、rowspan、backgroundColor、单元格内富文本 |
+| CLI | 通过 `--upload-images` 上传图片 |
+| Playwright | 表格列宽拖动、图片上传备选方案 |
 
-## Limitations
+## 局限性
 
-Items marked ❌ were verified as of 2026-06. Yuque evolves — if something marked unsupported now works, update the corresponding reference file.
+标注 ❌ 的能力截至 2026-06 验证。语雀在持续迭代 — 如果某个标注为不支持的功能现在可用了，请更新对应的 reference 文件。
 
-**Self-verification method**: Try the thing (e.g., `<td width="200">`). If it no longer errors, the limitation has been lifted.
+**自验证方法**：直接尝试（如在 `<td>` 中设置 `width="200"`）。如果不再报错，说明限制已解除。
 
 ## License
 
