@@ -93,13 +93,10 @@ cp -r yuque-power-user ~/.claude/skills/
 
 ### v2.1 (2026-06-06)
 
-- 修复高亮块颜色映射写反了（color1 实际是蓝色/info，之前写成了红色）
-- 修复有毒标签描述不够准确——`<todo>` 只是静默消失，不会像 `<cardlink>`/`<mention>` 那样破坏后续段落；补充了 @mention 的视觉替代方案 `[@人名](url)`
-- 修复多栏描述说支持表格——表格不能放进多栏，放进去会丢内容
-- 修复 callout 读写不对称问题——读取文档时 callout 内容可能返回空，写回会丢失文本；补充了 `<callout kind>` → `:::colorN` 的映射关系
-- 新增 CLI `yuque update doc` 的全文替换警告（和 MCP API 一样会覆盖整篇文档）
-- 修复几处交叉引用指向不存在的章节标题
-- 精简 ymd-syntax——去掉与详细章节重复的快速模板、与 mcp-api-guide 重复的有毒标签章节、不属于 YMD 语法的错误条目，减少 context token 消耗
+- 修复高亮块颜色映射，有毒标签描述，补充了 @mention 的视觉替代方案
+- 修复多栏描述支持表格、交叉引用指向章节标题缺失、callout 读写不对称问题，补充了 `<callout kind>` → `:::colorN` 的映射关系
+- 新增 CLI `yuque update doc` 的全文替换警告
+- 精简 ymd-syntax，包括快速模板、重复章节、错误条目，减少 context token 消耗
 
 ### v2.0 (2026-06-06)
 
