@@ -93,18 +93,13 @@ cp -r yuque-power-user ~/.claude/skills/
 
 ### v2.1 (2026-06-06)
 
-- 修复 mcp-api-guide.md 高亮块颜色映射错误（color1=红→蓝/info，与实际不符）
-- 修复 SKILL.md 护栏 #6 有毒标签描述过度泛化（`<todo>` 是静默消除，不破坏后续段落）
-- 修复 SKILL.md 护栏 #6 @mention 替代方案遗漏（补充 `[@人名](url)` 视觉替代）
-- 修复 mcp-api-guide.md 有毒标签章节段首与表格自相矛盾（区分"有毒"和"消除"两种行为）
-- 修复 ymd-syntax.md 多栏描述错误（"表格等"→"表格除外，见 SKILL.md 护栏 #7"）
-- 修复 cli-guide.md 交叉引用指向不存在的章节标题（"护栏 #1"→"陷阱 #1"）
-- 新增 mcp-api-guide.md 安全更新模板的 callout 读写不对称警告
-- 新增 mcp-api-guide.md 和 ymd-syntax.md 的 callout 读路径映射（`<callout kind>` → `:::colorN`）
-- 新增 cli-guide.md 全文替换警告（CLI `yuque update doc` 也是全文替换）
-- 删除 ymd-syntax.md 快速模板（与详细章节重复，浪费 context tokens）
-- 删除 ymd-syntax.md 有毒标签独立章节（与 mcp-api-guide.md 重复，§12/§13 内联警告已覆盖）
-- 删除 ymd-syntax.md 常见错误表中 doc_update 行（不属于 YMD 语法问题）
+- 修复高亮块颜色映射写反了（color1 实际是蓝色/info，之前写成了红色）
+- 修复有毒标签描述不够准确——`<todo>` 只是静默消失，不会像 `<cardlink>`/`<mention>` 那样破坏后续段落；补充了 @mention 的视觉替代方案 `[@人名](url)`
+- 修复多栏描述说支持表格——表格不能放进多栏，放进去会丢内容
+- 修复 callout 读写不对称问题——读取文档时 callout 内容可能返回空，写回会丢失文本；补充了 `<callout kind>` → `:::colorN` 的映射关系
+- 新增 CLI `yuque update doc` 的全文替换警告（和 MCP API 一样会覆盖整篇文档）
+- 修复几处交叉引用指向不存在的章节标题
+- 精简 ymd-syntax——去掉与详细章节重复的快速模板、与 mcp-api-guide 重复的有毒标签章节、不属于 YMD 语法的错误条目，减少 context token 消耗
 
 ### v2.0 (2026-06-06)
 
