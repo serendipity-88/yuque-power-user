@@ -33,15 +33,17 @@ description: >
 - "表格要好看一点，表头加底色，有几个单元格要合并，表格太窄了能拉宽么" → html-table-advanced + playwright-workarounds
 - "我本地有几张截图要插到语雀文档里" → cli-guide
 - "帮我写个周报模板，要有高亮块、折叠块、关键指标标红、加个日历卡片" → ymd-syntax
+- "帮我创建一篇完整的周报，要画板、表格带底色、还要插截图" → end-to-end-example
 
-## 🔴 6 条核心护栏（每次操作前回顾）
+## 🔴 7 条核心护栏（每次操作前回顾）
 
 1. **读后写**：`skylark_doc_update` 是**全文替换**，不是增量更新。更新前必须先 `skylark_doc_detail` 读取完整内容，修改后整体写回
 2. **4空格缩进**：画板 DSL 中 mindmap 和 architecturediagram 必须用 4 空格缩进，2 空格会导致解析失败且无错误提示
 3. **Board ≠ Doc**：`skylark_resource_detail` 只能读取 Doc 类型文档中嵌入的 board resource。对 Board 类型文档（独立画板）调用会报 `unsupported doc type: Board`
-4. **表格列宽不可控**：API 和 YMD 均无法设置列宽。唯一可行方案是 Playwright 拖动编辑器中的列分隔线
+4. **列宽拖拽可持久化**：API/YMD 无法设置列宽，但 Playwright 拖拽 `.ne-ui-table-resize-right` 手柄 + 全宽展示按钮可调整，保存后持久化。列宽信息不反映在 Markdown body 中
 5. **创建 ≠ 覆盖**：同一文档多次调用 `skylark_resource_create` 会追加多个画板，不会覆盖已有的。如需替换，先删除旧的 board 引用再创建新的
 6. **有毒标签禁用**：`<cardlink>`、`<mention>`、`<todo>` 通过 MCP API 写入时会被解析器破坏——不仅自身不渲染，还会吞掉后续段落。替代方案：链接用 `[标题](url)`、任务列表用 `- [ ]`、@人名只能编辑器手动操作
+7. **表格不入容器**：表格（Markdown/HTML）不能嵌入 `:::colorN` 高亮块、`<details>` 折叠块、`<columns>` 多栏——表格内容会丢失，高亮块还会边界溢出吞掉后续段落
 
 ## 决策路由
 
@@ -55,6 +57,7 @@ description: >
 | 插入画板（流程图/思维导图/架构图） | [references/board-dsl.md](references/board-dsl.md) |
 | 表格合并单元格、背景色、富文本 | [references/html-table-advanced.md](references/html-table-advanced.md) |
 | 表格列宽调整、Playwright 自动化 | [references/playwright-workarounds.md](references/playwright-workarounds.md) |
+| 完整文档生产流程（画板+表格+图片组合） | [references/end-to-end-example.md](references/end-to-end-example.md) |
 
 ## ⚠️ 能力边界声明
 

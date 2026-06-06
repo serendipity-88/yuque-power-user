@@ -13,14 +13,15 @@
 
 Skill 自动加载对应的参考文档，**在错误发生之前拦截常见问题**，把上面这些"做不到"变成"自动做"。
 
-## 6 条护栏（血泪教训）
+## 7 条护栏（血泪教训）
 
 1. **读后写** — `skylark_doc_update` 是**全文替换**，不是增量更新。更新前必须先 `doc_detail` 读取完整内容。
 2. **4 空格缩进** — 画板 DSL 中 mindmap/architecturediagram 用 2 空格会静默失败，没有任何报错。
 3. **Board ≠ Doc** — `skylark_resource_detail` 只能读取 Doc 类型文档中嵌入的 board resource，不支持独立的 Board 类型文档。
-4. **列宽不可控** — 表格列宽无法通过 API 或 YMD 设置，只有 Playwright 拖动可行。
+4. **列宽拖拽可持久化** — API/YMD 无法设置列宽，但 Playwright 拖拽 `.ne-ui-table-resize-right` 手柄 + 全宽展示按钮可调整，保存后持久化。
 5. **创建 ≠ 覆盖** — 多次调用 `resource_create` 会追加画板，不会覆盖已有的。
 6. **有毒标签** — `<cardlink>`、`<mention>`、`<todo>` 通过 MCP API 写入会破坏后续所有段落。用 `[标题](url)`、`- [ ]`、`[@人名](profile-url)` 替代。
+7. **表格不入容器** — 表格不能嵌入 `:::colorN` 高亮块、`<details>` 折叠块、`<columns>` 多栏——表格内容会丢失，高亮块还会边界溢出吞掉后续段落。
 
 ## 目录结构
 
@@ -29,11 +30,12 @@ yuque-power-user/
 ├── SKILL.md                              # 入口：护栏 + 决策路由
 └── references/
     ├── mcp-api-guide.md        (258 行)  # skylark_* API 用法 + 陷阱
-    ├── ymd-syntax.md           (334 行)  # 扩展 Markdown：高亮块、多栏、折叠、日历、页面引用...
+    ├── ymd-syntax.md           (337 行)  # 扩展 Markdown：高亮块、多栏、折叠、日历、页面引用...
     ├── cli-guide.md            (193 行)  # 语雀 CLI 图片上传
     ├── board-dsl.md            (183 行)  # 流程图 / 思维导图 / 架构图 DSL
-    ├── html-table-advanced.md  (106 行)  # colspan、rowspan、backgroundColor
-    └── playwright-workarounds.md (118 行) # 列宽拖动、图片上传备选
+    ├── html-table-advanced.md  (228 行)  # colspan、rowspan、backgroundColor、块级嵌套、选型决策
+    ├── playwright-workarounds.md (382 行) # 列宽拖动、权重分配、工具栏5概念、全宽展示
+    └── end-to-end-example.md   (256 行)  # 完整文档生产流程示例
 ```
 
 Reference 文件**按需加载** — agent 只读取当前任务相关的文件，保持上下文精简。
@@ -77,15 +79,31 @@ cp -r yuque-power-user ~/.claude/skills/
 | MCP API | 创建/更新/搜索文档、画板资源、知识库目录 |
 | YMD 语法 | 高亮块、多栏、折叠、标签卡片、日历卡片、页面引用、渐变文字、上下标、任务列表、@人名替代方案 |
 | 画板 DSL | 流程图、思维导图（4空格！）、架构图（4空格！） |
-| HTML 表格 | colspan、rowspan、backgroundColor、单元格内富文本 |
+| HTML 表格 | colspan、rowspan、backgroundColor、单元格内富文本、**块级列表嵌套** |
 | CLI | 通过 `--upload-images` 上传图片 |
-| Playwright | 表格列宽拖动、图片上传备选方案 |
+| Playwright | 表格列宽拖动、**权重分配列宽**、**全宽展示**、图片上传备选方案 |
 
 ## 局限性
 
 标注 ❌ 的能力截至 2026-06 验证。语雀在持续迭代 — 如果某个标注为不支持的功能现在可用了，请更新对应的 reference 文件。
 
 **自验证方法**：直接尝试（如在 `<td>` 中设置 `width="200"`）。如果不再报错，说明限制已解除。
+
+## 更新日志
+
+### v2.0 (2026-06-06)
+
+- 新增 HTML 表格单元格内写列表、有序列表、引用的能力（官方确认 td 是 nested root）
+- 新增超宽表格列宽权重分配规则（label=1, desc=2, list=3, media=2），Playwright 拖拽时按内容类型自动计算目标宽度
+- 新增表格工具栏 5 个概念的完整说明（自适应宽度、列等宽、全宽/标宽展示、全屏），搞清楚依赖关系
+- 修复 API 创建的表格"自适应宽度"默认关闭的问题，Playwright 操作前必须先开启
+- 修复表格放进高亮块/折叠块/多栏里会丢失内容的问题，明确表格只能放文档顶层
+- 修复 HTML 表格通过 API 读回后样式全丢（backgroundColor/colspan/rowspan 降级为普通 Markdown 表格），给出应对方案
+- 新增端到端示例文档，覆盖从创建文档到画板到图片上传到调列宽的完整流程
+
+### v1.0 (2026-06-04)
+
+- 初始发布
 
 ## License
 
