@@ -29,9 +29,9 @@ Skill 自动加载对应的参考文档，**在错误发生之前拦截常见问
 yuque-power-user/
 ├── SKILL.md                              # 入口：护栏 + 决策路由
 └── references/
-    ├── mcp-api-guide.md        (258 行)  # skylark_* API 用法 + 陷阱
-    ├── ymd-syntax.md           (337 行)  # 扩展 Markdown：高亮块、多栏、折叠、日历、页面引用...
-    ├── cli-guide.md            (193 行)  # 语雀 CLI 图片上传
+    ├── mcp-api-guide.md        (262 行)  # skylark_* API 用法 + 陷阱
+    ├── ymd-syntax.md           (280 行)  # 扩展 Markdown：高亮块、多栏、折叠、日历、页面引用...
+    ├── cli-guide.md            (197 行)  # 语雀 CLI 图片上传
     ├── board-dsl.md            (183 行)  # 流程图 / 思维导图 / 架构图 DSL
     ├── html-table-advanced.md  (228 行)  # colspan、rowspan、backgroundColor、块级嵌套、选型决策
     ├── playwright-workarounds.md (382 行) # 列宽拖动、权重分配、工具栏5概念、全宽展示
@@ -90,6 +90,21 @@ cp -r yuque-power-user ~/.claude/skills/
 **自验证方法**：直接尝试（如在 `<td>` 中设置 `width="200"`），如果不再报错，说明限制已解除。
 
 ## 更新日志
+
+### v2.1 (2026-06-06)
+
+- 修复 mcp-api-guide.md 高亮块颜色映射错误（color1=红→蓝/info，与实际不符）
+- 修复 SKILL.md 护栏 #6 有毒标签描述过度泛化（`<todo>` 是静默消除，不破坏后续段落）
+- 修复 SKILL.md 护栏 #6 @mention 替代方案遗漏（补充 `[@人名](url)` 视觉替代）
+- 修复 mcp-api-guide.md 有毒标签章节段首与表格自相矛盾（区分"有毒"和"消除"两种行为）
+- 修复 ymd-syntax.md 多栏描述错误（"表格等"→"表格除外，见 SKILL.md 护栏 #7"）
+- 修复 cli-guide.md 交叉引用指向不存在的章节标题（"护栏 #1"→"陷阱 #1"）
+- 新增 mcp-api-guide.md 安全更新模板的 callout 读写不对称警告
+- 新增 mcp-api-guide.md 和 ymd-syntax.md 的 callout 读路径映射（`<callout kind>` → `:::colorN`）
+- 新增 cli-guide.md 全文替换警告（CLI `yuque update doc` 也是全文替换）
+- 删除 ymd-syntax.md 快速模板（与详细章节重复，浪费 context tokens）
+- 删除 ymd-syntax.md 有毒标签独立章节（与 mcp-api-guide.md 重复，§12/§13 内联警告已覆盖）
+- 删除 ymd-syntax.md 常见错误表中 doc_update 行（不属于 YMD 语法问题）
 
 ### v2.0 (2026-06-06)
 

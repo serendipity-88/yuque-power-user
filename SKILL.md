@@ -42,7 +42,7 @@ description: >
 3. **Board ≠ Doc**：`skylark_resource_detail` 只能读取 Doc 类型文档中嵌入的 board resource。对 Board 类型文档（独立画板）调用会报 `unsupported doc type: Board`
 4. **列宽拖拽可持久化**：API/YMD 无法设置列宽，但 Playwright 拖拽 `.ne-ui-table-resize-right` 手柄 + 全宽展示按钮可调整，保存后持久化。列宽信息不反映在 Markdown body 中
 5. **创建 ≠ 覆盖**：同一文档多次调用 `skylark_resource_create` 会追加多个画板，不会覆盖已有的。如需替换，先删除旧的 board 引用再创建新的
-6. **有毒标签禁用**：`<cardlink>`、`<mention>`、`<todo>` 通过 MCP API 写入时会被解析器破坏——不仅自身不渲染，还会吞掉后续段落。替代方案：链接用 `[标题](url)`、任务列表用 `- [ ]`、@人名只能编辑器手动操作
+6. **有毒标签禁用**：`<cardlink>`、`<mention>` 通过 MCP API 写入时不仅自身不渲染，还会**破坏后续所有段落**；`<todo>` 会被静默消除（自身消失但不破坏后续内容）。替代方案：链接用 `[标题](url)` 或 `<page-title-card>`、任务列表用 `- [ ]`、@人名用 `[@人名](url)` 视觉替代（不触发通知）
 7. **表格不入容器**：表格（Markdown/HTML）不能嵌入 `:::colorN` 高亮块、`<details>` 折叠块、`<columns>` 多栏——表格内容会丢失，高亮块还会边界溢出吞掉后续段落
 
 ## 决策路由

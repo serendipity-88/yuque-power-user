@@ -122,6 +122,10 @@ yuque create doc \
 
 ## 限制与注意事项
 
+### 全文替换
+
+`yuque update doc` 是全文替换，会覆盖文档全部内容——和 `skylark_doc_update` 一样。更新前必须先读取完整内容，修改后整体写回。详见 mcp-api-guide.md 陷阱 #1。
+
 ### 图片上传限制
 - **仅支持 Doc 类型文档**，Sheet / HtmlDoc 不支持
 - 必须配合 `--body-file` 使用，不能通过 `--body` 内联参数上传图片

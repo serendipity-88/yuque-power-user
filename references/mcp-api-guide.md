@@ -37,6 +37,8 @@
         )
 ```
 
+⚠️ **callout 读写不对称**：`doc_detail` 读取文档时，`<callout kind="warning">内容</callout>` 可能返回空 `{}`。如果直接把读取结果写回，会丢失 callout 文本。需将 `<callout kind="X">` 转换为 `:::colorN` 语法重写（kind 映射：info→1, success→2, warning→3, danger→4, tips→5）。
+
 **快速创建文档模板：**
 
 ```
@@ -141,25 +143,29 @@ skylark_resource_detail(
 
 ```markdown
 :::color1
-红色高亮块内容
+蓝色信息框（info）
 :::
 
 :::color2
-橙色高亮块内容
+绿色成功框（success）
 :::
 
 :::color3
-黄色高亮块内容
+橙色警告框（warning）— 周报中最常用
 :::
 
 :::color4
-绿色高亮块内容
+红色危险框（danger）
 :::
 
 :::color5
-蓝色高亮块内容
+灰色提示框（tips）
 :::
 ```
+
+> 读取文档时，`doc_detail` 返回的 `<callout kind="warning">` 对应 `:::color3`，kind 值 info/success/warning/danger/tips 分别对应 color1-5。
+
+⚠️ `:::colorN` 前后必须有空行，否则不渲染。
 
 ### 表格换行
 
@@ -247,7 +253,10 @@ graph TD
 
 ### 9. 有毒标签（MCP API 写入时绝对不要用）
 
-以下 YMD 标签通过 MCP API 的 Markdown body 写入时，不仅自身不渲染，还会**破坏后续所有段落**直到下一个块级元素，导致多段内容被合并成乱段：
+以下 YMD 标签通过 MCP API 的 Markdown body 写入时会产生问题：
+
+- **有毒标签**（`<cardlink>`、`<mention>`）：不仅自身不渲染，还会**破坏后续所有段落**直到下一个块级元素，导致多段内容被合并成乱段
+- **消除标签**（`<todo>`）：自身被静默消除，但不破坏后续内容
 
 | 标签 | 预期功能 | 实际表现 | 替代方案 |
 |------|---------|---------|---------|

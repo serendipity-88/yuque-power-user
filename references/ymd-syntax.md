@@ -1,49 +1,5 @@
 # YMD (语雀扩展 Markdown) 高级语法速查
 
-## 快速模板
-
-```markdown
-<!-- 高亮块 -->
-:::color3
-**专项目标：** 这里是内容
-:::
-
-<!-- 彩色文字 -->
-<font style="color:#DF2A3F;">红色重点</font>
-
-<!-- 渐变文字 -->
-<span textColor="#1677ff, #ff77ff">渐变色文字</span>
-
-<!-- 上标/下标 -->
-脚注<sup>1</sup>  化学式 H<sub>2</sub>O
-
-<!-- 折叠 -->
-<details>
-  <summary>点击展开</summary>
-  折叠内容
-</details>
-
-<!-- 多栏 -->
-<columns>
-  <column>左栏</column>
-  <column>右栏</column>
-</columns>
-
-<!-- 标签卡片 -->
-<label-card label="P0" colorIndex="1"/>
-
-<!-- 语雀页面引用 -->
-<page-title-card src="https://yuque.antfin.com/..." title="文档标题"/>
-<page-card src="https://yuque.antfin.com/..." mode="card" title="文档标题"/>
-<page-card src="https://yuque.antfin.com/..." mode="embed" title="文档标题"/>
-
-<!-- 段落对齐/缩进 -->
-居中文本。 {align="center"}
-首行缩进。 {indent="true"}
-```
-
----
-
 ## 详细说明
 
 ### 1. 高亮块 / Callout
@@ -74,6 +30,8 @@
 
 通过 MCP API `skylark_doc_update` 传入 `:::color3` 语法有效，可直接用于自动化写入。
 
+> 读取文档时，`doc_detail` 返回的 `<callout kind="warning">` 对应 `:::color3`。kind 值 info/success/warning/danger/tips 分别对应 color1-5。
+
 ---
 
 ### 2. 多栏布局
@@ -86,7 +44,7 @@
 ```
 
 - 支持 2 / 3 / 4 栏
-- 每栏内支持任意 YMD 语法（列表、高亮块、表格等）
+- 每栏内支持列表、高亮块等 YMD 语法（⚠️ 表格除外，见 SKILL.md 护栏 #7）
 
 ---
 
@@ -308,20 +266,6 @@ graph TD
 
 ---
 
-## 🔴 有毒标签（MCP API 写入时绝对不要用）
-
-以下标签通过 MCP API 的 Markdown body 写入时，不仅自身不渲染，还会**破坏后续所有段落**直到下一个块级元素（如 `<table>`），导致多个段落和标题被合并成一个乱段：
-
-| 标签 | 预期功能 | 实际表现 | 替代方案 |
-|------|---------|---------|---------|
-| `<cardlink>` | 卡片式链接 | ❌ 有毒，破坏后续内容 | 用 `[标题](url)` Markdown 链接 |
-| `<mention>` | @人名 | ❌ 有毒，破坏后续内容 | `[@人名](https://yuque.antfin.com/<login>)` 视觉一致，但不触发通知 |
-| `<todo>` | 待办事项 | ❌ 被静默消除 | 用 `- [ ]` Markdown checkbox |
-
-> 验证日期：2026-06-03。如需验证是否已修复，创建一个测试文档写入 `<cardlink href="url" title="test"/>`，检查后续段落是否正常渲染。
-
----
-
 ## 常见错误
 
 | 错误现象 | 原因 | 解决方法 |
@@ -331,7 +275,6 @@ graph TD
 | 彩色文字不生效 | 使用了 `color:red` 而非 HEX | 必须使用 HEX 颜色值如 `#DF2A3F` |
 | 多栏布局不生效 | `<columns>` 标签拼写错误 | 检查标签名是否正确，注意是复数 `columns` |
 | 标签卡片不显示 | 缺少自闭合斜杠 | 确保写成 `<label-card ... />` |
-| doc_update 覆盖全文 | `skylark_doc_update` 是全文替换 | 先读取完整文档，修改后整体写回 |
 | 折叠块内容丢失 | `<details>` 内嵌表格被解析器丢弃 | 折叠块内只放纯文本或列表，不要放表格（2026-06-05 验证） |
 | 高亮块吞掉后续内容 | `:::colorN` 内嵌表格导致闭合边界溢出 | 表格不能嵌入 callout，callout 内只放文本和列表（2026-06-05 验证） |
 | 多栏内表格丢失 | `<columns>` 内嵌表格被丢弃 | 表格不能嵌入 columns，表格必须放在文档顶层（2026-06-05 验证） |
