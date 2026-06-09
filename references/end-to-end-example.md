@@ -39,6 +39,12 @@ skylark_resolve_url(url="https://yuque.antfin.com/guannan.gan/kzxqb4")
 ## 关键指标
 
 <table>
+<colgroup>
+<col width="100" />
+<col width="150" />
+<col width="250" />
+<col width="250" />
+</colgroup>
   <tr>
     <td backgroundColor="#f5f5f5">**指标**</td>
     <td backgroundColor="#f5f5f5">**本周**</td>
@@ -81,6 +87,7 @@ skylark_resolve_url(url="https://yuque.antfin.com/guannan.gan/kzxqb4")
 **⚠️ 注意事项**：
 - `:::colorN` 前后必须有空行，否则不渲染（color2=绿色正向、color4=红色危险，按语义选色） → [ymd-syntax.md] 常见错误
 - **表格选型**：本示例用 HTML 表格（需要背景色）。HTML `<td>` 是 nested root，支持块级列表嵌套（`+ item` 独立行写法）。后续 API 读→写会丢样式，如需定期 API 更新改用 Markdown 表格 → [html-table-advanced.md] 选型决策树
+- **colgroup 列宽**：`<colgroup>` 控制列宽比例，总和不可超过 750px。标签列窄（~100px），内容列宽（~250px）。如果表格仍显窄，后续用 Playwright 开全宽展示（750→1016px）→ [html-table-advanced.md] colgroup 章节
 - `<font style="color:#DF2A3F;">` 必须用 HEX 颜色值，不能用 `color:red` → [ymd-syntax.md] 文本格式增强
 - **不要使用** `<cardlink>`、`<mention>`、`<todo>` 标签 → 护栏 6：有毒标签禁用
 - **表格不入容器**：本示例中实验数据表放在文档顶层（`## 标题`分隔），不嵌入 `<details>` → 护栏 7
@@ -176,16 +183,19 @@ skylark_doc_detail(doc_id=87654321)
 
 ---
 
-## Step 6（可选）：调整表格列宽（Playwright）
+## Step 6（可选）：调整表格列宽（colgroup + Playwright）
 
-如果表格显示太窄，需要 Playwright 拖拽：
+Step 2 已通过 `<colgroup>` 设置了列宽比例（750px 内）。如果表格仍显窄或列宽需要微调，按优先级操作：
+
+1. **colgroup 已设比例** → 检查效果，通常已够用
+2. **需要更宽** → Playwright 开全宽展示（750→1016px，比例不变）
+3. **个别列需精调** → Playwright 拖拽手柄（建议标宽下操作，再开全宽）
 
 ```python
-# 导航到文档页面后执行
-# 详见 playwright-workarounds.md 方式三
+# Playwright 全宽展示代码详见 playwright-workarounds.md
 ```
 
-**📎 来源**：[playwright-workarounds.md] 方式二/方式三
+**📎 来源**：[html-table-advanced.md] colgroup 章节 + [playwright-workarounds.md] 全宽展示
 
 ---
 
@@ -199,6 +209,7 @@ skylark_doc_detail(doc_id=87654321)
     │
     ▼
 MCP 创建文档 (doc_id)  ──护栏1: 读后写──┐
+    │  护栏4a: colgroup ≤750px             │
     │                                    │
     ▼                                    │
 MCP 插入画板 (resource_id)               │
@@ -216,7 +227,7 @@ CLI 更新文档 + 上传图片
     │  护栏6: 不用有毒标签
     │
     ▼
-（可选）Playwright 调整列宽
+（可选）Playwright 全宽展示/拖拽精调
 ```
 
 ## 常见变体

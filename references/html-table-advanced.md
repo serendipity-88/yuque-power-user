@@ -12,23 +12,108 @@
 | 跨行合并 | ❌ | ✅ `rowspan` |
 | 背景色 | ❌ | ✅ `backgroundColor` |
 | 彩色文字 | ✅ `<font>` | ✅ |
+| 列宽比例 | ❌ | ✅ `<colgroup><col width="N" />` |
+
+---
+
+## `<colgroup>` 列宽控制（2026-06-09 验证可用）
+
+### 语法
+
+在 `<table>` 首位放置 `<colgroup>`，为每列指定宽度（正整数 px）：
+
+```html
+<table>
+<colgroup>
+<col width="100" />
+<col width="350" />
+<col width="300" />
+</colgroup>
+<tr>
+<td>策略</td>
+<td>进展</td>
+<td>效果</td>
+</tr>
+</table>
+```
+
+### 方向指引
+
+根据每列内容类型分配宽度，标签列窄、内容列宽：
+
+- 标签/分类列（策略名、状态、人名）：~100px
+- 简短描述列（一句话说明、指标值）：~150-200px
+- 列表/详情列（3+ bullet、多段文字）：~250-350px
+- 富媒体列（截图、链接）：~150-200px
+
+参考示例（3列）：`100 / 350 / 300`，参考示例（4列）：`80 / 200 / 270 / 200`
+
+### 🔴 硬约束
+
+1. **总和不可超过 750px**：超出会被 API **静默剥离**（无报错，colgroup 整个消失，表格回退均分）。生成后务必用 `skylark_doc_detail(format=ymd)` 验证 colgroup 是否保留
+2. **`<col>` 数量 = 表格列数**：colspan=2 的列占 2 个 `<col>` 位。数量不匹配会导致列宽错乱
+3. **format=md 读回丢失**：colgroup 与 backgroundColor/colspan 一样，format=md 读回时丢失。含 HTML 表格的文档必须用 format=ymd 读取
+4. **width 只接受正整数 px**：不支持百分比
+
+### 与其他能力组合
+
+colgroup 可与 backgroundColor、colspan、rowspan 自由组合：
+
+```html
+<table>
+<colgroup>
+<col width="80" />
+<col width="200" />
+<col width="200" />
+<col width="270" />
+</colgroup>
+<tr>
+<td backgroundColor="#D6E4FF">**序号**</td>
+<td backgroundColor="#D6E4FF">**模块**</td>
+<td backgroundColor="#D6E4FF">**负责人**</td>
+<td backgroundColor="#D6E4FF">**说明**</td>
+</tr>
+<tr>
+<td>2</td>
+<td colspan="2">合并两列</td>
+<td>剩余内容</td>
+</tr>
+</table>
+```
+
+### 列宽控制方案选择
+
+```
+创建表格时就知道列宽比例？
+├── 是 → API 写 <colgroup>（比例写入 body，总和 ≤750px）
+│       └── 列多空间紧（最窄列 <100px 或 2+ 个列表列）？→ 追加 Playwright 全宽展示
+└── 否 → 创建后 Playwright 拖拽 + 全宽展示
+
+两种方案可组合：colgroup 设初始比例 → 标宽下拖拽精调 → 全宽展示扩展总宽
+详见 playwright-workarounds.md
+```
 
 ---
 
 ## 快速模板
 
-### HTML 表格（跨列/跨行/背景色）
+### HTML 表格（跨列/跨行/背景色/列宽）
 
 ```html
 <table>
-  <tr>
-    <td colspan="2" backgroundColor="#f5f5f5">**合并两列标题**</td>
-    <td rowspan="2">跨两行</td>
-  </tr>
-  <tr>
-    <td>普通单元格</td>
-    <td backgroundColor="#E8F7CF">绿色背景</td>
-  </tr>
+<colgroup>
+<col width="100" />
+<col width="350" />
+<col width="300" />
+</colgroup>
+<tr>
+<td colspan="2" backgroundColor="#f5f5f5">**合并两列标题**</td>
+<td rowspan="2">跨两行</td>
+</tr>
+<tr>
+<td>普通单元格</td>
+<td backgroundColor="#E8F7CF">绿色背景</td>
+</tr>
 </table>
 ```
 
@@ -75,16 +160,21 @@
 
 ```html
 <table>
-  <tr>
-    <td backgroundColor="#D6E4FF">**列标题1**</td>
-    <td backgroundColor="#D6E4FF">**列标题2**</td>
-    <td backgroundColor="#D6E4FF">**列标题3**</td>
-  </tr>
-  <tr>
-    <td>内容</td>
-    <td><span backgroundColor="#E8F7CF">达标</span></td>
-    <td><font style="color:#DF2A3F;">风险项</font></td>
-  </tr>
+<colgroup>
+<col width="100" />
+<col width="350" />
+<col width="300" />
+</colgroup>
+<tr>
+<td backgroundColor="#D6E4FF">**列标题1**</td>
+<td backgroundColor="#D6E4FF">**列标题2**</td>
+<td backgroundColor="#D6E4FF">**列标题3**</td>
+</tr>
+<tr>
+<td>内容</td>
+<td><span backgroundColor="#E8F7CF">达标</span></td>
+<td><font style="color:#DF2A3F;">风险项</font></td>
+</tr>
 </table>
 ```
 
@@ -92,81 +182,27 @@
 
 ---
 
-## 已验证不支持的属性（2026-06 验证）
+## ✅ 已验证可用（2026-06 验证）
+
+| 方案 | 用途 | 限制 |
+|------|------|------|
+| `<colgroup><col width="N" />` | 设置列宽比例 | 总和 ≤750px，超限静默剥离；format=md 读回丢失 |
+| `colspan="N"` | 跨列合并 | — |
+| `rowspan="N"` | 跨行合并 | — |
+| `backgroundColor="#hex"` | 单元格背景色 | format=md 读回丢失 |
+| `<td>` 块级嵌套 | 单元格内列表/引用/代码 | format=md 读回丢失 |
+
+## ❌ 已验证不可用（2026-06 验证）
 
 | 方案 | 结果 | 错误信息 |
 |------|------|---------|
 | `<td width="N">` | ❌ | `Unsupported <td> attribute "width"` |
 | `<td style="width:N">` | ❌ | `Unsupported <td> attribute "style"` |
-| `<colgroup><col>` | ❌ | `table block only allows <tr> direct children` |
 | 不同长度内容自适应列宽 | ❌ | 列宽始终均分，不随内容变化 |
 
-### 列宽调整
-
-API/YMD 均无法控制列宽。Playwright 拖拽可持久化，详见 [playwright-workarounds.md](playwright-workarounds.md)。
-
 ---
 
-## ✅ `<td>` 块级内容嵌套（官方确认）
-
-> 参考：https://yuque.antfin.com/lark/ymd/lsegluq35m7psxhg
-> "`td` 是 nested root，可承载段落、列表、代码块等块级内容"
-
-### 无序列表
-
-```plain
-<table>
-<tr>
-<td>
-+ 列表项一
-+ 列表项二
-</td>
-</tr>
-</table>
-```
-
-### 有序列表
-
-```plain
-<table>
-<tr>
-<td>
-1. 确认需求
-2. 评审方案
-3. 跟进上线
-</td>
-</tr>
-</table>
-```
-
-### 引用 + 多段落
-
-```plain
-<table>
-<tr>
-<td rowspan="2">
-跨两行说明
-
-> 引用内容
-</td>
-<td>
-第一段
-
-第二段
-</td>
-</tr>
-</table>
-```
-
-### ⚠️ 注意事项
-- 列表项必须**独立成行**，不要用 `<br>` 内联拼接
-- `<td>` 内容前后需要换行，不要写在 `<td>` 同一行
-- API 读回会降级为 Markdown 表格，列表格式丢失——仅影响读→改→写场景，不影响一次性写入的页面渲染
-- Markdown `|...|` 表格不支持此特性（单元格只能单行）
-
----
-
-## 🔴 表格选型决策（2026-06-05 实测验证）
+## 🔴 表格选型决策（2026-06-09 更新）
 
 ### 互斥矩阵
 
@@ -174,6 +210,7 @@ API/YMD 均无法控制列宽。Playwright 拖拽可持久化，详见 [playwrig
 |------|:---:|:---:|
 | 背景色 | ❌ | ✅ |
 | 合并单元格（colspan/rowspan） | ❌ | ✅ |
+| 列宽比例（colgroup） | ❌ | ✅ |
 | 单元格内列表 | ❌ 不支持 | ✅ 块级嵌套（`+ item` 独立行） |
 | 单元格内引用/代码块 | ❌ | ✅（`<td>` 是 nested root） |
 | 读写安全（API 读→改→写不丢格式） | ✅ | ❌ 读回变 Markdown，样式全丢 |
@@ -183,10 +220,11 @@ API/YMD 均无法控制列宽。Playwright 拖拽可持久化，详见 [playwrig
 ### 选型决策树
 
 ```
-需要背景色/合并/列表？
+需要背景色/合并/列宽控制/列表？
 ├── 是 → HTML 表格（<table>/<tr>/<td>）
+│   ├── 需要列宽比例？→ 加 <colgroup>
 │   └── 后续需要 API 读→改→写？
-│       ├── 是 → ⚠️ 每次更新必须重写完整 HTML
+│       ├── 是 → ⚠️ 必须用 format=ymd 读取，否则 colgroup/背景色/合并全丢
 │       └── 否 → ✅ 一次性写入无问题
 └── 否 → Markdown 表格（语法简洁、读写安全）
 ```
@@ -195,10 +233,10 @@ API/YMD 均无法控制列宽。Playwright 拖拽可持久化，详见 [playwrig
 
 | 场景 | 推荐 | 原因 |
 |------|------|------|
-| 周报指标表（表头底色、红绿标记） | HTML | 背景色 + 列表都支持 |
-| 策略矩阵（多行进展+列表） | HTML | `<td>` 块级嵌套列表 ✅ |
-| 一次性发布的汇报 | HTML | 功能最全 |
-| 需定期 API 更新的模板 | Markdown | 读写安全 |
+| 周报指标表（表头底色、列宽控制、红绿标记） | HTML + colgroup | 背景色 + 列宽 + 列表都支持 |
+| 策略矩阵（多行进展+列表） | HTML + colgroup | `<td>` 块级嵌套列表 ✅ |
+| 一次性发布的汇报 | HTML + colgroup | 功能最全 |
+| 需定期 API 更新的数据表 | Markdown | 读写安全 |
 | 简单对比表（无背景色无列表） | Markdown | 语法简洁 |
 
 ---
@@ -220,8 +258,9 @@ API/YMD 均无法控制列宽。Playwright 拖拽可持久化，详见 [playwrig
 
 ## HTML 表格读写降级（2026-06-05 实测验证）
 
-`skylark_doc_detail` 读回时 HTML 表格被转为 Markdown 表格——backgroundColor、colspan、rowspan **全丢**。
+`skylark_doc_detail` 读回时 HTML 表格被转为 Markdown 表格——backgroundColor、colspan、rowspan、**colgroup** 全丢。
 
 **应对**：
 - 修改非表格部分时：保留原始 HTML 表格代码不动
 - 必须修改表格时：用完整 HTML 重新写入
+- **含 HTML 表格的文档必须用 format=ymd 读取**，否则 colgroup/backgroundColor/colspan 一次性全丢
