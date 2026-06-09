@@ -41,8 +41,8 @@ description: >
 1. **读后写**：`skylark_doc_update` 是**全文替换**，不是增量更新。更新前必须先 `skylark_doc_detail` 读取完整内容，修改后整体写回
 2. **4空格缩进**：画板 DSL 中 mindmap 和 architecturediagram 必须用 4 空格缩进，2 空格会导致解析失败且无错误提示
 3. **Board ≠ Doc**：`skylark_resource_detail` 只能读取 Doc 类型文档中嵌入的 board resource。对 Board 类型文档（独立画板）调用会报 `unsupported doc type: Board`
-4a. **colgroup 列宽比例**：HTML 表格可通过 `<colgroup><col width="N" />` 设定列宽比例（总和**不可超过 750px**，超出会被 API **静默剥离无报错**）。format=ymd 读写保留 colgroup，format=md 读回丢失（同 backgroundColor/colspan）
-4b. **全宽展示与拖拽精调**：colgroup 仅控制 750px 内的比例分配。表格总宽扩展（750→1016px）和单列微调仍需 Playwright（需先开启「自适应宽度」才能操作全宽展示和拖拽手柄，API 创建的表格默认 OFF）。建议操作顺序：colgroup 设比例 → 标宽下拖拽精调 → 开全宽展示。全宽展示状态不反映在 YMD/MD 读回中
+4a. **colgroup 列宽比例**：HTML 表格可通过 `<colgroup><col width="N" />` 设定列宽比例（建议总和 ≤750px；超 750px 不会被剥离，但标准宽度下容器裁切溢出部分，开全宽展示可正常显示）。format=ymd 读写保留 colgroup，format=md 读回丢失（同 backgroundColor/colspan）
+4b. **全宽展示**：让容器不再裁切表格，按 colgroup 比例自然展开。全宽展示与「自适应宽度」**独立**，可直接点击工具栏第一个无名 icon 开启，无需先开自适应宽度。全宽展示状态不反映在 YMD/MD 读回中
 5. **创建 ≠ 覆盖**：同一文档多次调用 `skylark_resource_create` 会追加多个画板，不会覆盖已有的。如需替换，先删除旧的 board 引用再创建新的
 6. **有毒标签禁用**：`<cardlink>`、`<mention>` 通过 MCP API 写入时不仅自身不渲染，还会**破坏后续所有段落**；`<todo>` 会被静默消除（自身消失但不破坏后续内容）。替代方案：链接用 `[标题](url)` 或 `<page-title-card>`、任务列表用 `- [ ]`、@人名用 `[@人名](url)` 视觉替代（不触发通知）
 7. **表格不入容器**：表格（Markdown/HTML）不能嵌入 `:::colorN` 高亮块、`<details>` 折叠块、`<columns>` 多栏——表格内容会丢失，高亮块还会边界溢出吞掉后续段落
@@ -53,14 +53,14 @@ description: >
 
 | 用户需求 | 加载 reference |
 |---------|---------------|
-| 创建/更新/搜索文档、知识库操作 | [references/mcp-api-guide.md](references/mcp-api-guide.md) |
-| 上传图片到语雀文档 | [references/cli-guide.md](references/cli-guide.md) |
-| 高亮块、多栏、折叠、标签卡片、日历、Mermaid、任务列表、页面引用、渐变色、上下标、段落对齐/缩进 | [references/ymd-syntax.md](references/ymd-syntax.md) |
-| 插入画板（流程图/思维导图/架构图） | [references/board-dsl.md](references/board-dsl.md) |
-| 表格合并单元格、背景色、列宽比例、富文本 | [references/html-table-advanced.md](references/html-table-advanced.md) |
-| 表格列宽调整（拖拽精调）、全宽展示、Playwright 自动化 | [references/playwright-workarounds.md](references/playwright-workarounds.md) |
-| 表格列宽（综合：colgroup + 全宽 + 拖拽） | [references/html-table-advanced.md](references/html-table-advanced.md) + [references/playwright-workarounds.md](references/playwright-workarounds.md) |
-| 完整文档生产流程（画板+表格+图片组合） | [references/end-to-end-example.md](references/end-to-end-example.md) |
+| 创建/更新/搜索文档、知识库操作 | [mcp-api-guide.md](mcp-api-guide.md) |
+| 上传图片到语雀文档 | [cli-guide.md](cli-guide.md) |
+| 高亮块、多栏、折叠、标签卡片、日历、Mermaid、任务列表、页面引用、渐变色、上下标、段落对齐/缩进 | [ymd-syntax.md](ymd-syntax.md) |
+| 插入画板（流程图/思维导图/架构图） | [board-dsl.md](board-dsl.md) |
+| 表格合并单元格、背景色、列宽比例、富文本 | [html-table-advanced.md](html-table-advanced.md) |
+| 表格列宽调整（拖拽精调）、全宽展示、Playwright 自动化 | [playwright-workarounds.md](playwright-workarounds.md) |
+| 表格列宽（综合：colgroup + 全宽 + 拖拽） | [html-table-advanced.md](html-table-advanced.md) + [playwright-workarounds.md](playwright-workarounds.md) |
+| 完整文档生产流程（画板+表格+图片组合） | [end-to-end-example.md](end-to-end-example.md) |
 
 ## ⚠️ 能力边界声明
 

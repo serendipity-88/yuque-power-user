@@ -50,7 +50,7 @@
 
 ### 🔴 硬约束
 
-1. **总和不可超过 750px**：超出会被 API **静默剥离**（无报错，colgroup 整个消失，表格回退均分）。生成后务必用 `skylark_doc_detail(format=ymd)` 验证 colgroup 是否保留
+1. **建议总和 ≤750px**：超过 750px 不会被 API 剥离，但标准宽度下容器（750px + `overflow: hidden`）会裁切溢出部分。开启全宽展示后可正常显示。建议总和 ≤750px 以避免标准宽度下溢出；如需更宽，配合全宽展示使用即可
 2. **`<col>` 数量 = 表格列数**：colspan=2 的列占 2 个 `<col>` 位。数量不匹配会导致列宽错乱
 3. **format=md 读回丢失**：colgroup 与 backgroundColor/colspan 一样，format=md 读回时丢失。含 HTML 表格的文档必须用 format=ymd 读取
 4. **width 只接受正整数 px**：不支持百分比
@@ -85,8 +85,8 @@ colgroup 可与 backgroundColor、colspan、rowspan 自由组合：
 
 ```
 创建表格时就知道列宽比例？
-├── 是 → API 写 <colgroup>（比例写入 body，总和 ≤750px）
-│       └── 列多空间紧（最窄列 <100px 或 2+ 个列表列）？→ 追加 Playwright 全宽展示
+├── 是 → API 写 <colgroup>（比例写入 body，建议总和 ≤750px）
+│       └── 列多空间紧或总和 >750px？→ 追加 Playwright 全宽展示
 └── 否 → 创建后 Playwright 拖拽 + 全宽展示
 
 两种方案可组合：colgroup 设初始比例 → 标宽下拖拽精调 → 全宽展示扩展总宽
@@ -186,7 +186,7 @@ colgroup 可与 backgroundColor、colspan、rowspan 自由组合：
 
 | 方案 | 用途 | 限制 |
 |------|------|------|
-| `<colgroup><col width="N" />` | 设置列宽比例 | 总和 ≤750px，超限静默剥离；format=md 读回丢失 |
+| `<colgroup><col width="N" />` | 设置列宽比例 | 建议 ≤750px；超 750px 不剥离但标准宽度下容器裁切；format=md 读回丢失 |
 | `colspan="N"` | 跨列合并 | — |
 | `rowspan="N"` | 跨行合并 | — |
 | `backgroundColor="#hex"` | 单元格背景色 | format=md 读回丢失 |

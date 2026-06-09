@@ -3,7 +3,7 @@
 用于解决语雀 MCP/CLI 无法完成的操作。
 
 **适用场景**：
-1. 表格全宽展示（750→1016px）
+1. 表格全宽展示（标宽→全宽，解决容器裁切）
 2. 表格列宽拖拽精调
 3. 图片上传的备选方案（当 CLI 不可用时）
 
@@ -13,8 +13,8 @@
 
 ```
 创建表格时就知道列宽比例？
-├── 是 → API 写 <colgroup>（比例写入 body，总和 ≤750px）
-│       └── 列多空间紧？→ 追加 Playwright 开全宽展示
+├── 是 → API 写 <colgroup>（比例写入 body，建议总和 ≤750px）
+│       └── 列多空间紧或总和 >750px？→ 追加 Playwright 开全宽展示
 └── 否 → 创建后 Playwright 拖拽 + 全宽展示
 
 两种方案可组合：colgroup 设初始比例 → 标宽下拖拽精调 → 全宽展示扩展总宽
@@ -22,10 +22,10 @@ colgroup 详见 html-table-advanced.md
 ```
 
 **关键关系**：
-- colgroup 控制 750px 内的列宽**比例**（API 可写）
-- 全宽展示控制表格**总宽**（750→1016px，仅 Playwright 可操作）
-- 全宽展示后 colgroup 的比例按等比放大，不会被重置
-- 拖拽精调在标宽（750px）下操作，全宽后拖拽可能失效，建议**先拖后全宽**
+- colgroup 控制列宽**比例**（API 可写，建议总和 ≤750px；超 750px 不会被剥离，但标准宽度下容器裁切溢出部分）
+- 全宽展示控制表格**总宽**（让容器不再裁切，表格按 colgroup 比例自然展开；若同时开自适应宽度则表格撑满页面宽度）
+- 全宽展示与自适应宽度**独立**，不是前置关系；全宽展示可直接点击工具栏第一个无名 icon
+- 拖拽精调在标宽下操作更可控，建议**先拖后全宽**
 
 ---
 
@@ -35,9 +35,10 @@ colgroup 详见 html-table-advanced.md
 
 ### 核心原理
 
-- 全宽展示是语雀编辑器的 UI toggle，只有 750px/1016px 两档，没有中间宽度
+- 全宽展示是语雀编辑器的 UI toggle，让容器不再裁切表格，表格按 colgroup 比例自然展开
+- 全宽展示与「自适应宽度」**独立**，不是前置关系。全宽展示可直接点击工具栏第一个无名 icon（`c-tb-width-mode-unfold/fold`）
+- 自适应宽度的作用：让表格列宽自动适应内容，开启后全宽展示下表格会撑满页面宽度（而非保持 colgroup 比例）
 - 全宽展示状态**不反映在 YMD/MD 读回中**，无法通过 API 判断当前状态
-- API 创建的表格「自适应宽度」默认 OFF，必须先开启才能点全宽展示
 
 ### 操作步骤
 
@@ -52,16 +53,7 @@ async (page) => {
   await table.locator('td').first().click();
   await page.waitForTimeout(800);
 
-  // 3. 确保自适应宽度开启
-  const colAdapt = page.locator('[data-testid="ne-card-toolbar-item-columnAdaptation"]');
-  await colAdapt.waitFor({ state: 'visible', timeout: 5000 });
-  const isOn = await colAdapt.evaluate(el => el.classList.contains('selected'));
-  if (!isOn) {
-    await colAdapt.click();
-    await page.waitForTimeout(500);
-  }
-
-  // 4. 检查全宽状态（避免误关闭）
+  // 3. 点击全宽展示（工具栏第一个无名 icon，c-tb-width-mode-unfold/fold）
   const widthMode = page.locator('[data-testid="ne-card-toolbar-item-widthMode"]');
   await widthMode.waitFor({ state: 'visible', timeout: 3000 });
   const isFullWidth = await widthMode.evaluate(el => {
@@ -73,7 +65,7 @@ async (page) => {
     await page.waitForTimeout(1000);
   }
 
-  // 5. 保存
+  // 4. 保存
   await page.locator('button:has-text("更新")').click();
   await page.waitForTimeout(2000);
 };
@@ -91,15 +83,6 @@ async (page) => {
     const table = tables[i];
     await table.locator('td').first().click();
     await page.waitForTimeout(800);
-
-    // 开自适应
-    const colAdapt = page.locator('[data-testid="ne-card-toolbar-item-columnAdaptation"]');
-    await colAdapt.waitFor({ state: 'visible', timeout: 5000 });
-    const isOn = await colAdapt.evaluate(el => el.classList.contains('selected'));
-    if (!isOn) {
-      await colAdapt.click();
-      await page.waitForTimeout(500);
-    }
 
     // 开全宽（检查状态避免误关）
     const widthMode = page.locator('[data-testid="ne-card-toolbar-item-widthMode"]');
@@ -142,7 +125,7 @@ async (page) => {
   await table.locator('td').first().click();
   await page.waitForTimeout(800);
 
-  // 3. 确保自适应宽度开启
+  // 3. 开启自适应宽度（让列宽按比例分配，拖拽更可控；非全宽展示前置条件）
   const colAdapt = page.locator('[data-testid="ne-card-toolbar-item-columnAdaptation"]');
   await colAdapt.waitFor({ state: 'visible', timeout: 5000 });
   const isOn = await colAdapt.evaluate(el => el.classList.contains('selected'));
@@ -220,9 +203,9 @@ async (page) => {
 
 | 方案 | 用途 | 限制 |
 |------|------|------|
-| `<colgroup><col width="N" />` | API 设置列宽比例 | 总和 ≤750px，超限静默剥离；format=md 读回丢失 |
-| Playwright 全宽展示 | 表格从 750px 扩展到 ~1016px | 只有 750/1016 两档，无中间宽度 |
-| Playwright 自适应宽度 toggle | 控制全宽展示按钮可见性 | API 创建的表格默认 OFF |
+| `<colgroup><col width="N" />` | API 设置列宽比例 | 建议 ≤750px；超 750px 不剥离但标准宽度下容器裁切；format=md 读回丢失 |
+| Playwright 全宽展示 | 让容器不再裁切表格，按 colgroup 比例自然展开 | 工具栏第一个无名 icon（`c-tb-width-mode-unfold/fold`） |
+| Playwright 自适应宽度 toggle | 让列宽自动适应内容，全宽时表格撑满页面 | 独立于全宽展示，非前置关系 |
 | Playwright 列宽拖拽 | 单列精调 | 建议标宽下操作，全宽后拖拽可能失效 |
 
 ## ❌ 已验证不可用的方案（2026-06-09 更新）
@@ -231,7 +214,6 @@ async (page) => {
 |------|------|------|
 | `<td width="N">` | ❌ | 语雀报错 Unsupported attribute |
 | `<td style="width:N">` | ❌ | 语雀报错 Unsupported attribute |
-| `<colgroup>` 总和 >750px | ❌ | API 静默剥离，无报错 |
 | JS 修改 DOM/colgroup 列宽 | ❌ | 临时生效但保存/刷新后被编辑器重置 |
 | MCP API 设置列宽 | ❌ | 无相关 API |
 | `<cardlink>` 标签 | ❌ | 有毒标签，破坏后续内容 |
@@ -242,17 +224,16 @@ async (page) => {
 
 ## 四、重要约束
 
-- **API 创建的表格「自适应宽度」默认 OFF**——必须先开启才能点全宽展示，否则 widthMode 按钮不存在
-- **全宽展示只有两档**：750px（标宽）和 ~1016px（全宽），没有中间宽度
+- **全宽展示与自适应宽度独立**：全宽展示可直接点击，不需要先开自适应宽度。自适应宽度让列宽适应内容（全宽时表格撑满页面），全宽展示让容器不再裁切
+- **全宽展示只有两档**：标宽（750px 容器）和全宽（容器随页面宽度展开），没有中间宽度
 - **全宽展示状态不可读**：YMD/MD 读回不反映全宽状态，Playwright 操作前必须检查当前状态避免误关
 - **必须 hover 到单元格/表头**才能激活 `.ne-ui-table-resize-right` 拖拽手柄
 - 拖拽需要用**真实的鼠标事件**（`page.mouse.move/down/up`），`dispatchEvent` 无效
 - 移动要平滑（分步），一次性跳转会失败
-- `widthMode` 按钮**仅在自适应宽度开启时可见**——关闭自适应宽度会隐藏全宽展示按钮
 - **colgroup 与全宽展示独立**：colgroup 控制比例，全宽展示控制总宽，两者可自由组合
 - **建议操作顺序**：colgroup 写比例 → 标宽下拖拽精调 → 开全宽展示
 
-### 表格工具栏 5 个概念详解（2026-06-05 实测验证）
+### 表格工具栏 5 个概念详解（2026-06-10 实测更新）
 
 #### 1. 自适应宽度（columnAdaptation）— 模式开关
 
@@ -261,8 +242,8 @@ async (page) => {
 | testId | `ne-card-toolbar-item-columnAdaptation` |
 | 类型 | **Toggle 开关**（selected/unselected） |
 | 默认 | 编辑器手动创建的表格默认 ON；**MCP API 创建的表格默认 OFF** |
-| 作用 | 启用后，列宽可按比例分配，全宽展示按钮可用 |
-| 关闭后 | 表格进入「固定宽度」模式，**全宽展示按钮消失** |
+| 作用 | 启用后，列宽可按比例分配；全宽展示时表格会撑满页面宽度 |
+| 关闭后 | 表格列宽固定像素值；全宽展示时表格保持 colgroup 自然宽度不撑满 |
 
 #### 2. 列等宽（equallyColumn）— 一次性动作
 
@@ -276,11 +257,15 @@ async (page) => {
 
 | 属性 | 值 |
 |------|-----|
-| testId | `ne-card-toolbar-item-widthMode` |
+| 位置 | 工具栏第一个无名 icon（`c-tb-width-mode-unfold/fold`） |
 | 类型 | **双态 Toggle** |
-| 前置条件 | **仅当「自适应宽度」开启时可见** |
-| 标宽→全宽 | 图标 `ne-icon-c-tb-width-mode-unfold`，点击后表格扩展到 ~1016px |
-| 全宽→标宽 | 图标 `ne-icon-c-tb-width-mode-fold`，点击后表格缩回 750px |
+| 前置条件 | **无**——全宽展示与自适应宽度独立，可直接点击 |
+| 标宽→全宽 | 图标 `ne-icon-c-tb-width-mode-unfold`，点击后容器不再裁切表格 |
+| 全宽→标宽 | 图标 `ne-icon-c-tb-width-mode-fold`，点击后容器恢复 750px 裁切 |
+
+> **全宽展示的效果取决于自适应宽度状态**：
+> - 自适应宽度 OFF + 全宽展示 ON → 表格保持 colgroup 自然宽度（如 800px），容器不裁切
+> - 自适应宽度 ON + 全宽展示 ON → 表格撑满页面宽度（取决于视口宽度），列宽按比例自适应
 
 #### 4. 全屏（maximize）— 临时编辑模式
 
@@ -295,23 +280,29 @@ async (page) => {
 #### 5. 概念关系总结
 
 ```
-自适应宽度 (模式开关)
-├── ON → 列宽按比例分配，以下子功能可用：
-│   ├── 全宽展示/标宽展示 (双态切换) — 控制表格总宽度
-│   └── 列等宽 (一次性动作) — 均分列宽（不等宽时才出现）
-└── OFF → 列宽固定像素值，全宽展示按钮隐藏
+全宽展示 / 标宽展示 (独立切换)
+├── 控制容器是否裁切表格
+├── 与自适应宽度独立，可直接操作
+└── 效果受自适应宽度影响：
+    ├── 自适应 OFF + 全宽 → 表格保持 colgroup 自然宽度
+    └── 自适应 ON + 全宽 → 表格撑满页面宽度
 
+自适应宽度 (独立切换)
+├── 控制列宽是否按内容自适应
+└── 影响全宽展示下表格的最终宽度
+
+列等宽 — 一次性动作，不等宽时出现
 全屏 — 独立功能，临时编辑模式，不影响持久化布局
-拖拽手柄 — 手动精调单列宽度，任何模式下都可用
-colgroup — API 层控制列宽比例，与上述工具栏功能独立
+拖拽手柄 — 手动精调单列宽度，建议标宽下操作
+colgroup — API 层控制列宽比例，与工具栏功能独立
 ```
 
 | 操作 | 改变表格总宽 | 改变列宽比例 | 持久化 | 模式依赖 |
 |------|:---:|:---:|:---:|------|
-| colgroup (API) | ❌ 750px 内 | ✅ 自定义 | ✅ YMD 读写 | 无 |
+| colgroup (API) | ❌ 只变比例不改总宽 | ✅ 自定义 | ✅ YMD 读写 | 无 |
 | 自适应宽度 ON/OFF | ❌ | ❌ | ✅ | 无 |
 | 列等宽 | ❌ | ✅ 均分 | ✅ | 需列宽不等 |
-| 全宽展示 | ✅ 扩至 ~1016px | ❌ 保持比例 | ✅ | 需自适应 ON |
-| 标宽展示 | ✅ 缩回 750px | ❌ 保持比例 | ✅ | 需自适应 ON |
+| 全宽展示 | ✅ 容器不裁切 | ❌ 保持比例 | ✅ | 无 |
+| 标宽展示 | ✅ 容器恢复裁切 | ❌ 保持比例 | ✅ | 无 |
 | 全屏 | ✅ 临时占满视口 | ❌ | ❌ | 无 |
 | 拖拽手柄 | ❌ | ✅ 精调单列 | ✅ | 无（建议标宽下操作） |

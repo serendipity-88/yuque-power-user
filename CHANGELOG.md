@@ -172,13 +172,13 @@
 
 ### 变更
 
-1. **新增 `<colgroup>` 列宽比例**：HTML 表格可通过 `<colgroup><col width="N" />` 设定列宽比例，API 写入 body 即生效，无需 Playwright。总和不可超过 750px，format=ymd 读写保留，format=md 读回丢失
-2. **修正"互斥"为"前置依赖"**：自适应宽度不是全宽展示的互斥项，而是前置开关——必须先开启自适应宽度，全宽展示按钮才可见。API 创建的表格自适应宽度默认 OFF
+1. **新增 `<colgroup>` 列宽比例**：HTML 表格可通过 `<colgroup><col width="N" />` 设定列宽比例，API 写入 body 即生效，无需 Playwright。建议总和 ≤750px（超 750px 不会被 API 剥离，但标准宽度下容器裁切溢出部分，开全宽展示可正常显示）。format=ymd 读写保留，format=md 读回丢失
+2. **修正"互斥"为"独立"**：自适应宽度与全宽展示是两个独立功能，不是互斥也不是前置关系。全宽展示可直接点击工具栏第一个无名 icon 开启，无需先开自适应宽度
 3. **明确操作顺序**：colgroup 写比例 → 标宽下拖拽精调 → 开全宽展示（全宽下拖拽可能失效）
 
 ### 变更文件
 
-- `SKILL.md`：护栏 #4 拆为 4a(colgroup) + 4b(Playwright)；决策路由新增列宽综合路径
+- `SKILL.md`：护栏 #4 拆为 4a(colgroup) + 4b(全宽展示独立于自适应宽度)；决策路由新增列宽综合路径
 - `html-table-advanced.md`：新增 colgroup 章节（语法/方向指引/硬约束/组合模板/选型决策树）；更新验证表
 - `playwright-workarounds.md`：新增列宽控制方案选择流程图；全宽展示代码加状态检查；修正操作顺序；更新概念关系矩阵
 - `end-to-end-example.md`：HTML 表格模板加 colgroup；Step 6 改为 colgroup+Playwright 三步流程
@@ -187,6 +187,33 @@
 
 | 旧描述 | 正确描述 |
 |--------|---------|
-| `<colgroup>` 不可用（报错 table only allows tr children） | `<colgroup>` 可用，总和 ≤750px |
-| 自适应宽度 + 全宽展示互斥 | 自适应宽度是全宽展示的前置条件 |
+| `<colgroup>` 不可用（报错 table only allows tr children） | `<colgroup>` 可用，建议总和 ≤750px |
+| 自适应宽度 + 全宽展示互斥 | 自适应宽度与全宽展示独立，非互斥非前置 |
 | 操作顺序：全宽 → 拖拽 | 操作顺序：拖拽 → 全宽 |
+| colgroup >750px 会被 API 静默剥离 | 超 750px 不剥离，但标准宽度下容器裁切 |
+
+---
+
+## 2026-06-09 v2.2 修正：colgroup 750px 非硬限制 + 自适应宽度非全宽前置条件
+
+### 问题
+
+v2.2 初版中两个关键事实错误：
+
+1. **colgroup 750px 限制描述错误**：文档称"总和不可超过 750px，超出会被 API 静默剥离"。实测 800px colgroup 被 API 完整保留，只是标准宽度下容器（750px + overflow: hidden）裁切溢出部分。开全宽展示后，800px 表格正常显示
+2. **自适应宽度与全宽展示关系错误**：文档称"自适应宽度是全宽展示的前置条件，必须先开启自适应宽度才能操作全宽展示"。实测两者完全独立——全宽展示可直接点击工具栏第一个无名 icon（c-tb-width-mode-unfold/fold），无需先开自适应宽度
+
+### 变更文件
+
+- `SKILL.md`：护栏 4a 从"超出会被 API 静默剥离"改为"建议 ≤750px；超 750px 不剥离但容器裁切"；护栏 4b 从"需先开启自适应宽度"改为"与自适应宽度独立，可直接点击"
+- `html-table-advanced.md`：硬约束 #1 从"不可超过 750px"改为"建议 ≤750px"；验证表 colgroup>750px 从 ❌ 改为 ⚠️；选型决策树措辞修正
+- `playwright-workarounds.md`：核心原理重写，移除"自适应宽度前置"描述；全宽展示代码移除自适应宽度前置步骤；5 个概念详解重写为独立关系；❌ 表 colgroup>750px 改为 ⚠️；拖拽代码注释修正
+- `end-to-end-example.md`：Step 6 描述从"750px 内"改为"建议 ≤750px"；流程图护栏 4a 描述修正
+
+### 验证
+
+1. 创建 800px colgroup 表格 → API 保留完整，标准宽度下容器裁切，开全宽展示后正常显示
+2. 全宽展示 ON + 自适应宽度 OFF → 表格保持 colgroup 自然宽度（800px），容器不裁切
+3. 全宽展示 ON + 自适应宽度 ON → 表格撑满页面宽度（取决于视口宽度）
+4. 全宽展示状态保存后刷新仍保持（ne-full-width class 持久化）
+5. 全宽展示不修改 colgroup 数据（API 读回值不变）
