@@ -18,7 +18,7 @@ Skill 自动加载对应的参考文档，**在错误发生之前拦截常见问
 1. **读后写** — `skylark_doc_update` 是**全文替换**，不是增量更新。更新前必须先 `doc_detail` 读取完整内容。
 2. **4 空格缩进** — 画板 DSL 中 mindmap/architecturediagram 用 2 空格会静默失败，没有任何报错。
 3. **Board ≠ Doc** — `skylark_resource_detail` 只能读取 Doc 类型文档中嵌入的 board resource，不支持独立的 Board 类型文档。
-4. **列宽拖拽可持久化** — API/YMD 无法设置列宽，但 Playwright 拖拽 `.ne-ui-table-resize-right` 手柄 + 全宽展示按钮可调整，保存后持久化。
+4. **colgroup 列宽 + Playwright 配合** — `<colgroup><col width="N" />` 可通过 API 直接设定列宽比例（总和≤750px，超出静默剥离）；表格总宽扩展和单列微调仍需 Playwright。操作顺序：colgroup 设比例 → 标宽下拖拽精调 → 全宽展示
 5. **创建 ≠ 覆盖** — 多次调用 `resource_create` 会追加画板，不会覆盖已有的。
 6. **有毒标签** — `<cardlink>`、`<mention>`、`<todo>` 通过 MCP API 写入会破坏后续所有段落。用 `[标题](url)`、`- [ ]`、`[@人名](profile-url)` 替代。
 7. **表格不入容器** — 表格不能嵌入 `:::colorN` 高亮块、`<details>` 折叠块、`<columns>` 多栏——表格内容会丢失，高亮块还会边界溢出吞掉后续段落。
@@ -79,9 +79,9 @@ cp -r yuque-power-user ~/.claude/skills/
 | MCP API | 创建/更新/搜索文档、画板资源、知识库目录 |
 | YMD 语法 | 高亮块、多栏、折叠、标签卡片、日历卡片、页面引用、渐变文字、上下标、任务列表、@人名替代方案 |
 | 画板 DSL | 流程图、思维导图（4空格！）、架构图（4空格！） |
-| HTML 表格 | colspan、rowspan、backgroundColor、单元格内富文本、**块级列表嵌套** |
+| HTML 表格 | colspan、rowspan、backgroundColor、**colgroup 列宽比例**、单元格内富文本、**块级列表嵌套** |
 | CLI | 通过 `--upload-images` 上传图片 |
-| Playwright | 表格列宽拖动、**权重分配列宽**、**全宽展示**、图片上传备选方案 |
+| Playwright | 表格列宽拖动、**全宽展示**（与 colgroup 配合）、图片上传备选方案 |
 
 ## 局限性
 
@@ -90,6 +90,12 @@ cp -r yuque-power-user ~/.claude/skills/
 **自验证方法**：直接尝试（如在 `<td>` 中设置 `width="200"`），如果不再报错，说明限制已解除。
 
 ## 更新日志
+
+### v2.2 (2026-06-09)
+
+1. 新增 `<colgroup>` 列宽比例：HTML 表格可通过 API 直接设定列宽比例，无需 Playwright
+2. 修正全宽展示与自适应宽度的关系：自适应宽度是全宽展示的前置开关，不是互斥项
+3. 明确列宽操作顺序：先 colgroup 设比例，再标宽下拖拽精调，最后全宽展示扩展总宽
 
 ### v2.1 (2026-06-06)
 
