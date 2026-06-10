@@ -21,6 +21,36 @@ skylark_resolve_url(url="https://yuque.antfin.com/guannan.gan/kzxqb4")
 # → 返回 book_id=12345678
 ```
 
+### URL 与 namespace / slug 的对应关系（2026-06-10 补充）
+
+| 写法 | 含义 | 适用场景 |
+|---|---|---|
+| `https://yuque.antfin.com/guannan.gan/kzxqb4/abc123` | 完整 URL | 浏览器访问、分享链接 |
+| `guannan.gan/kzxqb4` | **namespace**（user-login + book-slug） | CLI `yuque create doc --namespace`、MCP `skylark_search(scope=...)` |
+| `guannan.gan/kzxqb4/abc123` | namespace + doc-slug | CLI `yuque update doc <namespace>/<slug>` |
+| `12345678` | book_id（数字 ID） | MCP `skylark_doc_create(book_id=...)` |
+| `87654321` | doc_id（数字 ID） | MCP `skylark_doc_detail/update(doc_id=...)` |
+
+#### 从 URL 提取 namespace 和 slug
+
+URL: `https://yuque.antfin.com/guannan.gan/kzxqb4/abc123`
+- 域名后第 1 段 `guannan.gan` = user-login
+- 第 2 段 `kzxqb4` = book-slug
+- 最后一段 `abc123` = doc-slug
+- **namespace = user-login + "/" + book-slug** = `guannan.gan/kzxqb4`
+- **CLI 完整路径 = namespace + "/" + doc-slug** = `guannan.gan/kzxqb4/abc123`
+
+#### 常见错误
+
+```bash
+# ❌ 错误：把 doc-slug 漏了，只传 namespace
+yuque update doc guannan.gan/kzxqb4 --body-file ./doc.md
+# → 报错：namespace 缺少 doc-slug
+
+# ✅ 正确：namespace + doc-slug
+yuque update doc guannan.gan/kzxqb4/abc123 --body-file ./doc.md
+```
+
 **📎 来源**：[mcp-api-guide.md] 快速参考表
 
 ---

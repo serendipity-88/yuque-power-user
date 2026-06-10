@@ -57,6 +57,10 @@
 </details>
 ```
 
+:::danger
+**不可内嵌表格** — `<details>` 块内**不能放 HTML 表格或 Markdown 表格**，表格内容会全部丢失（只剩 `<summary>` 标题）。详见 [html-table-advanced.md] 容器嵌套限制章节。表格应放在文档顶层，用 `## 标题` 分组。
+:::
+
 ---
 
 ### 4. 文本格式增强

@@ -51,9 +51,60 @@
 ### 🔴 硬约束
 
 1. **建议总和 ≤750px**：超过 750px 不会被 API 剥离，但标准宽度下容器（750px + `overflow: hidden`）会裁切溢出部分。开启全宽展示后可正常显示。建议总和 ≤750px 以避免标准宽度下溢出；如需更宽，配合全宽展示使用即可
-2. **`<col>` 数量 = 表格列数**：colspan=2 的列占 2 个 `<col>` 位。数量不匹配会导致列宽错乱
+2. **`<col>` 数量 = 表格列数**：colspan=2 的列占 2 个 `<col>` 位。数量不匹配会导致列宽错乱。**详见下方对照表**
 3. **format=md 读回丢失**：colgroup 与 backgroundColor/colspan 一样，format=md 读回时丢失。含 HTML 表格的文档必须用 format=ymd 读取
 4. **width 只接受正整数 px**：不支持百分比
+
+### `<colgroup>` 与 `colspan` 对照表（2026-06-10 补充）
+
+硬约束 #2 的规则容易按字面理解错：写 3 列 + 第 1 行 colspan=2 的表格时，常见误判是只写 2 个 `<col>`。实际上 colspan=2 占 2 个 `<col>` 位，`<col>` 总数仍 = 表格列数。
+
+| 表格列数 | colspan / rowspan 分布 | `<col>` 个数 | 写法 |
+|---|---|---|---|
+| 3 | 无合并 | 3 | `<col>×3` |
+| 3 | 第 1 行 colspan=2 | **3** | `<col>×3`（colspan 占 2 个位） |
+| 3 | 第 2 行 rowspan=2 | 3 | `<col>×3`（rowspan 不影响 col 数量） |
+| 4 | 第 1 行 colspan=2 + 第 2 行 colspan=2 | 4 | `<col>×4`（两个 colspan 各占 2 个位） |
+| 4 | 跨 2 行 + 跨 2 列混合 | 4 | `<col>×4` |
+| 5 | colspan/rowspan 混合 | 5 | `<col>×5` |
+
+#### ❌ 错误示例（3 列 colspan=2 写 2 个 col）
+
+```html
+<table>
+<colgroup>
+<col width="200" />  <!-- 错！3 列表格应写 3 个 <col> -->
+<col width="200" />
+</colgroup>
+<tr>
+  <td colspan="2">合并两列</td>
+  <td>独立</td>
+</tr>
+</table>
+```
+
+**实际结果**：语雀可能回退为 2 列渲染，colspan 行为异常。
+
+#### ✅ 正确示例（3 列 colspan=2 写 3 个 col）
+
+```html
+<table>
+<colgroup>
+<col width="200" />  <!-- 第 1 列 -->
+<col width="300" />  <!-- 第 2 列（与第 1 列共同被 colspan=2 占用） -->
+<col width="200" />  <!-- 第 3 列 -->
+</colgroup>
+<tr>
+  <td colspan="2">合并两列</td>
+  <td>第 3 列</td>
+</tr>
+<tr>
+  <td>第 1 列</td>
+  <td>第 2 列</td>
+  <td>第 3 列</td>
+</tr>
+</table>
+```
 
 ### 与其他能力组合
 

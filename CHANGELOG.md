@@ -1,5 +1,14 @@
 # yuque-power-user Skill 变更日志
 
+## 2026-06-10 v2.2.1 上线前修复
+
+修复了 3 个核心必修问题：
+- `html-table-advanced.md` 新增 `<colgroup>` 与 `colspan` 对照表（6 种组合 + ❌/✅ 示例）
+- `ymd-syntax.md` 折叠块章节新增"不可内嵌表格"红字警告，纠正与 `html-table-advanced.md` 的内部矛盾
+- `end-to-end-example.md` 新增 URL 与 namespace / slug 对应关系章节（5 种写法对照 + 解析步骤 + 常见错误）
+
+---
+
 ## 2026-06-05 补充：`<td>` 内行内格式与块级格式的分界说明
 
 ### 变更文件
